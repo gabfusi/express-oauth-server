@@ -46,7 +46,10 @@ ExpressOAuthServer.prototype.authenticate = function(options, followNext) {
     var request = new Request(req);
     var response = new Response(res);
 
-    return that.authenticateFn(options)
+    return Promise.bind(this)
+      .then(function() {
+        return server.authenticate(request, response, options);
+      })
       .tap(function(token) {
         res.locals.oauth = { token: token };
         if(followNext) next();
@@ -122,24 +125,6 @@ ExpressOAuthServer.prototype.token = function(options, followNext) {
       });
   };
 };
-
-/**
- * Authentication Method.
- *
- * Returns a middleware that will validate a token.
- *
- * (See: https://tools.ietf.org/html/rfc6749#section-7)
- */
-
-ExpressOAuthServer.prototype.authenticateFn = function(options) {
-  var server = this.server;
-
-  return Promise.bind(this)
-    .then(function() {
-      return server.authenticate(request, response, options);
-    })
-};
-
 
 /**
  * Grant Middleware.
