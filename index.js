@@ -46,9 +46,9 @@ ExpressOAuthServer.prototype.authenticate = function(options) {
     var request = new Request(req);
     var response = new Response(res);
 
-    return Promise.bind(this)
+    return Promise.bind(that)
       .then(function() {
-        return server.authenticate(request, response, options);
+        return this.server.authenticate(request, response, options);
       })
       .tap(function(token) {
         res.locals.oauth = { token: token };
@@ -110,7 +110,10 @@ ExpressOAuthServer.prototype.token = function(options, followNext) {
     var request = new Request(req);
     var response = new Response(res);
 
-    return that.tokenFn(options)
+    return Promise.bind(that)
+      .then(function() {
+        return this.server.token(request, response, options);
+      })
       .tap(function(token) {
         res.locals.oauth = { token: token };
         if (this.continueMiddleware) {
