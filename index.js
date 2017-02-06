@@ -46,7 +46,7 @@ ExpressOAuthServer.prototype.authenticate = function(options, followNext) {
     var request = new Request(req);
     var response = new Response(res);
 
-    return self.authenticateFn(options)
+    return that.authenticateFn(options)
       .tap(function(token) {
         res.locals.oauth = { token: token };
         if(followNext) next();
@@ -107,7 +107,7 @@ ExpressOAuthServer.prototype.token = function(options, followNext) {
     var request = new Request(req);
     var response = new Response(res);
 
-    return this.tokenFn(options)
+    return that.tokenFn(options)
       .tap(function(token) {
         res.locals.oauth = { token: token };
         if (this.continueMiddleware) {
