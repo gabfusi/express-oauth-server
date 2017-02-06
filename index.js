@@ -39,7 +39,7 @@ function ExpressOAuthServer(options) {
  * (See: https://tools.ietf.org/html/rfc6749#section-7)
  */
 
-ExpressOAuthServer.prototype.authenticate = function(options, followNext) {
+ExpressOAuthServer.prototype.authenticate = function(options) {
   var that = this;
 
   return function(req, res, next) {
@@ -52,7 +52,7 @@ ExpressOAuthServer.prototype.authenticate = function(options, followNext) {
       })
       .tap(function(token) {
         res.locals.oauth = { token: token };
-        if(followNext) next();
+        next();
       })
       .catch(function(e) {
         return handleError.call(this, e, req, res, null, next);
