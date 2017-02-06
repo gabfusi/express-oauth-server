@@ -140,10 +140,16 @@ ExpressOAuthServer.prototype.token = function(options, followNext) {
 ExpressOAuthServer.prototype.tokenFn = function(options) {
   var server = this.server;
 
-  return Promise.bind(this)
-    .then(function() {
-      return server.token(request, response, options);
-    })
+  return function(req, res, next) {
+    var request = new Request(req);
+    var response = new Response(res);
+
+    return Promise.bind(this)
+      .then(function() {
+        return server.token(request, response, options);
+      });
+      
+  }
 };
 
 /**
