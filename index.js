@@ -39,24 +39,22 @@ function ExpressOAuthServer(options) {
  * (See: https://tools.ietf.org/html/rfc6749#section-7)
  */
 
-ExpressOAuthServer.prototype.authenticate = function(options) {
+ExpressOAuthServer.prototype.authenticate = function(options, followNext) {
   var that = this;
 
   return function(req, res, next) {
     var request = new Request(req);
     var response = new Response(res);
 
-    return Promise.bind(that)
-      .then(function() {
-        return this.server.authenticate(request, response, options);
-      })
+    return self.authenticateFn(options)
       .tap(function(token) {
         res.locals.oauth = { token: token };
-        next();
+        if(followNext) next();
       })
       .catch(function(e) {
         return handleError.call(this, e, req, res, null, next);
       });
+
   };
 };
 
@@ -102,17 +100,14 @@ ExpressOAuthServer.prototype.authorize = function(options) {
  * (See: https://tools.ietf.org/html/rfc6749#section-3.2)
  */
 
-ExpressOAuthServer.prototype.token = function(options) {
+ExpressOAuthServer.prototype.token = function(options, followNext) {
   var that = this;
 
   return function(req, res, next) {
     var request = new Request(req);
     var response = new Response(res);
 
-    return Promise.bind(that)
-      .then(function() {
-        return this.server.token(request, response, options);
-      })
+    return this.tokenFn(options)
       .tap(function(token) {
         res.locals.oauth = { token: token };
         if (this.continueMiddleware) {
@@ -126,6 +121,41 @@ ExpressOAuthServer.prototype.token = function(options) {
         return handleError.call(this, e, req, res, response, next);
       });
   };
+};
+
+/**
+ * Authentication Method.
+ *
+ * Returns a middleware that will validate a token.
+ *
+ * (See: https://tools.ietf.org/html/rfc6749#section-7)
+ */
+
+ExpressOAuthServer.prototype.authenticateFn = function(options) {
+  var server = this.server;
+
+  return Promise.bind(this)
+    .then(function() {
+      return server.authenticate(request, response, options);
+    })
+};
+
+
+/**
+ * Grant Middleware.
+ *
+ * Returns middleware that will grant tokens to valid requests.
+ *
+ * (See: https://tools.ietf.org/html/rfc6749#section-3.2)
+ */
+
+ExpressOAuthServer.prototype.tokenFn = function(options) {
+  var server = this.server;
+
+  return Promise.bind(this)
+    .then(function() {
+      return server.token(request, response, options);
+    })
 };
 
 /**
